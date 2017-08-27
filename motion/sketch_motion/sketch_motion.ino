@@ -1,6 +1,19 @@
+/*
+ * Connects to WIFI on startup.
+ * When motion is detected sends payload ("ON") to mqtt server
+ * When motion is no longer detected sends payload ("OFF") to mqtt server
+ * 
+ * Secrets are defined in secrets.h
+ */
 int pirpin = D6;
 int pirstate = LOW;
 int val = 0;
+unsigned long timeOfLastMotion = 0;
+
+
+int startupDelayInSeconds = 20;
+int blackoutAfterMotion = 30 * 1000;
+int blackoutRecheckInterval = 5 * 1000;
 
 #include "secrets.h"
 #include <ESP8266WiFi.h>
@@ -12,8 +25,6 @@ const char* password = SECRET_WIFI_PASSWORD;
 const char* server = SECRET_MQTT_SERVER;
 const char* mqttUser = SECRET_MQTT_USER;
 const char* mqttPassword = SECRET_MQTT_PASSWORD;
-
-char* topic = "home-assistant/motion";
 
 const String MOTION_ON = "ON";
 const String MOTION_OFF = "OFF";
@@ -38,6 +49,18 @@ String macToStr(const uint8_t* mac)
   return result;
 }
 
+// Generate client name based on MAC address and last 8 bits of microsecond counter
+String getClientName() {
+  String clientName;
+  clientName += "esp8266-";
+  uint8_t mac[6];
+  WiFi.macAddress(mac);
+  clientName += macToStr(mac);
+  return clientName;
+}
+
+String topicString = "home-assistant/motion/" + getClientName();
+char* topic = (char*) topicString.c_str();
 
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
@@ -73,19 +96,6 @@ void connectAndSend(String payload) {
   }
 }
 
-
-// Generate client name based on MAC address and last 8 bits of microsecond counter
-String getClientName() {
-  String clientName;
-  clientName += "esp8266-";
-  uint8_t mac[6];
-  WiFi.macAddress(mac);
-  clientName += macToStr(mac);
-  clientName += "-";
-  clientName += String(micros() & 0xff, 16);
-  return clientName;
-}
-
 void setup() {
   Serial.begin(115200);
 
@@ -102,17 +112,10 @@ void setup() {
   Serial.println("WiFi connected");  
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-
   
-
-//  Serial.print("Connecting to ");
-//  Serial.print(server);
-//  Serial.print(" as ");
-//  Serial.println(clientName);
-//  
   connect();
   
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < startupDelayInSeconds; i++) {
 
     Serial.print(".");
 
@@ -144,16 +147,21 @@ void motionDetected(String status) {
     sendPayload(payload);
   } else {
     connectAndSend(payload);
-//    delay(3000);
-//    sendPayload(payload);
   }
 }
 
 void loop() {
-
   val = digitalRead(pirpin);
+  if (timeOfLastMotion > millis() - (blackoutAfterMotion)) {
+//    Serial.println(F("Too soon to recent motion, waiting"));
+    delay(blackoutRecheckInterval);
 
-//  Serial.println(val);
+    if (val == HIGH) {
+      timeOfLastMotion = millis();
+    }
+    
+    return;
+  } 
 
   if (val == HIGH) {
 
@@ -167,7 +175,10 @@ void loop() {
 
       motionDetected(MOTION_ON);
 
-      delay(30000);
+      timeOfLastMotion = millis();
+
+      // 30 second delay when seeing motion to respond
+      delay(5000);
 
     }
   }
