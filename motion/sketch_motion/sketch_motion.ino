@@ -10,10 +10,17 @@ int pirstate = LOW;
 int val = 0;
 unsigned long timeOfLastMotion = 0;
 
-
+// How long from device power on to wait for PIR to load
 int startupDelayInSeconds = 20;
+
+// When no motion -> Motion, delay before next read
+int motionCheckFreeze = 10 * 1000;
+
+// Delay between last motion read and setting back to no motion
 int blackoutAfterMotion = 30 * 1000;
-int blackoutRecheckInterval = 5 * 1000;
+
+// How frequently to check for motion when during the motion blackout
+int blackoutRecheckInterval = 3 * 1000;
 
 #include "secrets.h"
 #include <ESP8266WiFi.h>
@@ -177,8 +184,7 @@ void loop() {
 
       timeOfLastMotion = millis();
 
-      // 30 second delay when seeing motion to respond
-      delay(5000);
+      delay(motionCheckFreeze);
 
     }
   }
