@@ -6,7 +6,17 @@
 #include "secrets.h"
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#include <ArduinoJson.h>
+//#include <ArduinoJson.h>
+
+
+/************* MQTT TOPICS (change these topics as you wish)  **************************/
+const char* topic1 = "home-assistant/rf/1";
+const char* topic2 = "home-assistant/rf/2";
+const char* topic3 = "home-assistant/rf/3";
+const char* topic4 = "home-assistant/rf/4";
+const char* topic5 = "home-assistant/rf/5";
+const char* on_cmd = "ON";
+const char* off_cmd = "OFF";
 
 /************ WIFI and MQTT Information (CHANGE THESE FOR YOUR SETUP) ******************/
 const char* ssid = SECRET_WIFI_SSID;
@@ -28,20 +38,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   message[length] = '\0';
   Serial.println(message);
 
-  if (!processJson(message)) {
-    return;
-  }
+  processTopic(topic, message);
+//  if (!processJson(message)) {
+//    return;
+//  }
 }
 
 /************************************ MISC VALUES ******************************************/
 RCSwitch mySwitch = RCSwitch();
 WiFiClient wifiClient;
 PubSubClient client(server, 1884, callback, wifiClient);
-
-/************* MQTT TOPICS (change these topics as you wish)  **************************/
-const char* topic = "home-assistant/rf";
-const char* on_cmd = "ON";
-const char* off_cmd = "OFF";
 
 //int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
@@ -62,67 +68,97 @@ int on5 = 275715;
 int off5 = 275724;
 
 /****************************************FOR JSON***************************************/
-const int BUFFER_SIZE = JSON_OBJECT_SIZE(10);
-#define MQTT_MAX_PACKET_SIZE 512
+//const int BUFFER_SIZE = JSON_OBJECT_SIZE(10);
+//#define MQTT_MAX_PACKET_SIZE 512
 
 /********************************** START PROCESS JSON*****************************************/
-bool processJson(char* message) {
-  StaticJsonBuffer<BUFFER_SIZE> jsonBuffer;
 
-  JsonObject& root = jsonBuffer.parseObject(message);
-
-  if (!root.success()) {
-    Serial.println("parseObject() failed");
-    return false;
-  }
-
-  if (root.containsKey("1")) {
-    if (strcmp(root["1"], on_cmd) == 0) {
+void processTopic(char* topic, char* message) {
+  if (strcmp(message, on_cmd) == 0) {
+    if (strcmp(topic, topic1) == 0) {
       mySwitch.send(on1, 24);
+    } else if (strcmp(topic, topic2) == 0) {
+      mySwitch.send(on2, 24);      
+    } else if (strcmp(topic, topic3) == 0) {
+      mySwitch.send(on3, 24);      
+    } else if (strcmp(topic, topic4) == 0) {
+      mySwitch.send(on4, 24);      
+    } else if (strcmp(topic, topic5) == 0) {
+      mySwitch.send(on5, 24);      
     }
-    else if (strcmp(root["1"], off_cmd) == 0) {
+  } else if (strcmp(message, off_cmd) == 0) {
+    if (strcmp(topic, topic1) == 0) {
       mySwitch.send(off1, 24);
+    } else if (strcmp(topic, topic2) == 0) {
+      mySwitch.send(off2, 24);      
+    } else if (strcmp(topic, topic3) == 0) {
+      mySwitch.send(off3, 24);      
+    } else if (strcmp(topic, topic4) == 0) {
+      mySwitch.send(off4, 24);      
+    } else if (strcmp(topic, topic5) == 0) {
+      mySwitch.send(off5, 24);      
     }
   }
   
-  if (root.containsKey("2")) {
-    if (strcmp(root["2"], on_cmd) == 0) {
-      mySwitch.send(on2, 24);
-    }
-    else if (strcmp(root["2"], off_cmd) == 0) {
-      mySwitch.send(off2, 24);
-    }
-  }
-  
-  if (root.containsKey("3")) {
-    if (strcmp(root["3"], on_cmd) == 0) {
-      mySwitch.send(on3, 24);
-    }
-    else if (strcmp(root["3"], off_cmd) == 0) {
-      mySwitch.send(off3, 24);
-    }
-  }
-  
-  if (root.containsKey("4")) {
-    if (strcmp(root["4"], on_cmd) == 0) {
-      mySwitch.send(on4, 24);
-    }
-    else if (strcmp(root["4"], off_cmd) == 0) {
-      mySwitch.send(off4, 24);
-    }
-  }
-  
-  if (root.containsKey("5")) {
-    if (strcmp(root["5"], on_cmd) == 0) {
-      mySwitch.send(on5, 24);
-    }
-    else if (strcmp(root["5"], off_cmd) == 0) {
-      mySwitch.send(off5, 24);
-    }
-  }
-
-  return true;
 }
+
+//bool processJson(char* message) {
+//  StaticJsonBuffer<BUFFER_SIZE> jsonBuffer;
+//
+//  JsonObject& root = jsonBuffer.parseObject(message);
+//
+//  if (!root.success()) {
+//    Serial.println("parseObject() failed");
+//    return false;
+//  }
+//
+//  if (root.containsKey("1")) {
+//    if (strcmp(root["1"], on_cmd) == 0) {
+//      mySwitch.send(on1, 24);
+//    }
+//    else if (strcmp(root["1"], off_cmd) == 0) {
+//      mySwitch.send(off1, 24);
+//    }
+//  }
+//  
+//  if (root.containsKey("2")) {
+//    if (strcmp(root["2"], on_cmd) == 0) {
+//      mySwitch.send(on2, 24);
+//    }
+//    else if (strcmp(root["2"], off_cmd) == 0) {
+//      mySwitch.send(off2, 24);
+//    }
+//  }
+//  
+//  if (root.containsKey("3")) {
+//    if (strcmp(root["3"], on_cmd) == 0) {
+//      mySwitch.send(on3, 24);
+//    }
+//    else if (strcmp(root["3"], off_cmd) == 0) {
+//      mySwitch.send(off3, 24);
+//    }
+//  }
+//  
+//  if (root.containsKey("4")) {
+//    if (strcmp(root["4"], on_cmd) == 0) {
+//      mySwitch.send(on4, 24);
+//    }
+//    else if (strcmp(root["4"], off_cmd) == 0) {
+//      mySwitch.send(off4, 24);
+//    }
+//  }
+//  
+//  if (root.containsKey("5")) {
+//    if (strcmp(root["5"], on_cmd) == 0) {
+//      mySwitch.send(on5, 24);
+//    }
+//    else if (strcmp(root["5"], off_cmd) == 0) {
+//      mySwitch.send(off5, 24);
+//    }
+//  }
+//
+//  return true;
+//}
 
 /********************************** START MAC TO STRING*****************************************/
 String macToStr(const uint8_t* mac)
@@ -155,7 +191,11 @@ void mqttReConnect() {
     // Attempt to connect
     if (client.connect((char*) getClientName().c_str(), mqttUser, mqttPassword)) {
       Serial.println("connected");
-      client.subscribe(topic);
+      client.subscribe(topic1);
+      client.subscribe(topic2);
+      client.subscribe(topic3);
+      client.subscribe(topic4);
+      client.subscribe(topic5);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -165,41 +205,6 @@ void mqttReConnect() {
     }
   }
 }
-//
-///********************************** START INITIAL CONNECT*****************************************/
-//void connect() {
-//  if (client.connect((char*) getClientName().c_str(), mqttUser, mqttPassword)) {
-//    Serial.println("Connected to MQTT broker");
-//    Serial.print("Topic is: ");
-//    Serial.println(topic);
-//    client.subscribe(topic);
-//    
-//    if (client.publish(topic, "hello from ESP8266")) {
-//      Serial.println("Publish ok");
-//    }
-//    else {
-//      Serial.println("Publish failed");
-//    }
-//  }
-//  else {
-//    Serial.println("MQTT connect failed");
-//    Serial.println("Will reset and try again...");
-//    abort();
-//  }
-//}
-//
-//void connectAndSend(String payload) {
-//  if (client.connect((char*) getClientName().c_str(), mqttUser, mqttPassword)) {
-//    Serial.println("Connected to MQTT broker");
-////    sendPayload(payload);
-//  }
-//  else {
-//    Serial.println("MQTT connect failed");
-//    Serial.println("Will reset and try again...");
-//    abort();
-//  }
-//}
-
 
 /********************************** START SETUP WIFI*****************************************/
 void setup_wifi() {
@@ -230,21 +235,10 @@ void setup() {
   mySwitch.enableTransmit(D6);
   mySwitch.setProtocol(1);
   mySwitch.setPulseLength(190);
-//  mySwitch.setRepeatTransmit(5);
+  mySwitch.setRepeatTransmit(5);
 
   setup_wifi();
-//  WiFi.begin(ssid, password);
-// 
-//  while (WiFi.status() != WL_CONNECTED) {
-//    delay(500);
-//    Serial.print(".");
-//  }
-//  Serial.println("");
-//  Serial.println("WiFi connected");  
-//  Serial.println("IP address: ");
-//  Serial.println(WiFi.localIP());
   
-//  connect();
   mqttReConnect();
   client.setCallback(callback);
 }
