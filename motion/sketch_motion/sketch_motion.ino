@@ -159,20 +159,27 @@ void motionDetected(String status) {
 
 void loop() {
   val = digitalRead(pirpin);
-  if (timeOfLastMotion > millis() - (blackoutAfterMotion)) {
+  bool isMotionNow = val == HIGH;
+  bool isMotionPreviousState = pirstate == HIGH;
+  bool isBlackout = timeOfLastMotion + blackoutAfterMotion > millis();
+//  
+//  if (isBlackout) {
 //    Serial.println(F("Too soon to recent motion, waiting"));
-    delay(blackoutRecheckInterval);
+//    delay(blackoutRecheckInterval);
+//
+////    if (isMotionNow) {
+////      Serial.println("Motion Detected after blackout, but before no motion could be detected");
+////      timeOfLastMotion = millis();
+////    }
+//    
+//    return;
+//  } else {
+//    Serial.println(F("Not in blackout"));
+//  }
 
-    if (val == HIGH) {
-      timeOfLastMotion = millis();
-    }
-    
-    return;
-  } 
+  if (isMotionNow) {
 
-  if (val == HIGH) {
-
-    if (pirstate == LOW) {
+    if (!isMotionPreviousState) {
 
       Serial.println("Motion Detected");
 
@@ -191,7 +198,7 @@ void loop() {
 
   else {
 
-    if (pirstate == HIGH) {
+    if (isMotionPreviousState) {
 
       Serial.println("motion finished");
 
