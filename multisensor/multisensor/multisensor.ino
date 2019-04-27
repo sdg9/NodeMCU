@@ -1,3 +1,4 @@
+
 /*
   .______   .______    __    __   __    __          ___      __    __  .___________.  ______   .___  ___.      ___   .___________. __    ______   .__   __.
   |   _  \  |   _  \  |  |  |  | |  |  |  |        /   \    |  |  |  | |           | /  __  \  |   \/   |     /   \  |           ||  |  /  __  \  |  \ |  |
@@ -26,12 +27,12 @@
 */
 
 
-
+#include "secrets.h"
 #include <ESP8266WiFi.h>
 #include <DHT.h>
 #include <PubSubClient.h>
 #include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
+#include <WiFiUdp.h>f
 #include <ArduinoOTA.h>
 #include <ArduinoJson.h>
 
@@ -40,14 +41,12 @@
 #define IsFahrenheit true //to use celsius change to false
 
 /************ WIFI and MQTT INFORMATION (CHANGE THESE FOR YOUR SETUP) ******************/
-#define wifi_ssid "**REDACTED**" //type your WIFI information inside the quotes
-#define wifi_password "**REDACTED**"
-#define mqtt_server "**REDACTED**"
-#define mqtt_user "**REDACTED**" 
-#define mqtt_password "**REDACTED**"
-#define mqtt_port 1883
-
-
+#define wifi_ssid SECRET_WIFI_SSID
+#define wifi_password SECRET_WIFI_PASSWORD
+#define mqtt_server SECRET_MQTT_SERVER
+#define mqtt_user SECRET_MQTT_USER
+#define mqtt_password SECRET_MQTT_PASSWORD
+#define mqtt_port 1884
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
 #define light_state_topic "bruh/sensornode1"
@@ -355,18 +354,13 @@ void sendState() {
   jsonDoc["temperature"] = (String)tempValue;
   jsonDoc["heatIndex"] = (String)dht.computeHeatIndex(tempValue, humValue, IsFahrenheit);
 
+  char buffer[256];
+  size_t n = serializeJson(jsonDoc, buffer);
 
-//  char buffer[measureJson(jsonDoc) + 1];
-  int len1 = measureJson(jsonDoc);
-  int len2 = 128;
-  char buffer[BUFFER_SIZE];
-  
-//  root.prettyPrintTo(buffer);
-  serializeJson(jsonDoc, buffer);
-//  jsonDoc.printTo(buffer, sizeof(buffer));
-
-  Serial.println(buffer);
-  client.publish(light_state_topic, buffer, true);
+  String payload;
+  serializeJson(jsonDoc,payload);
+  Serial.println(payload);
+  client.publish(light_state_topic, buffer, n);
 }
 
 
