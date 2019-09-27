@@ -49,8 +49,8 @@
 #define mqtt_port 1884
 
 /************* MQTT TOPICS (change these topics as you wish)  **************************/
-#define light_state_topic "bruh/sensornode2"
-#define light_set_topic "bruh/sensornode2/set"
+#define light_state_topic "bruh/sensornode3"
+#define light_set_topic "bruh/sensornode3/set"
 
 const char* on_cmd = "ON";
 const char* off_cmd = "OFF";
@@ -58,7 +58,7 @@ const char* off_cmd = "OFF";
 
 
 /**************************** FOR OTA **************************************************/
-#define SENSORNAME "sensornode2"
+#define SENSORNAME "sensornode3"
 #define OTApassword "YouPassword" // change this to whatever password you want to use when you upload OTA
 int OTAport = 8266;
 
